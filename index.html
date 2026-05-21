@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Fridge Note</title>
+<title>馬籠家の食卓🍽️</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body {
@@ -10,22 +10,38 @@ body {
   background: #f7f7f7;
   padding: 16px;
 }
-h1, h2, h3 {
+h1 { text-align: center; }
+
+.tabs {
+  display: flex;
+  margin-bottom: 16px;
+}
+.tab {
+  flex: 1;
   text-align: center;
+  padding: 10px;
+  background: #ddd;
+  border-radius: 8px 8px 0 0;
 }
-.section {
-  margin-bottom: 24px;
+.tab.active {
+  background: #4caf50;
+  color: white;
 }
-.item {
+
+.section { display: none; }
+.section.active { display: block; }
+
+.item, .menu-day {
   background: #fff;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 12px;
 }
+
 .bar {
   display: flex;
   gap: 4px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .bar span {
   flex: 1;
@@ -33,15 +49,11 @@ h1, h2, h3 {
   background: #ddd;
   border-radius: 4px;
 }
-.bar span.active {
-  background: #4caf50;
-}
-.row {
-  display: flex;
-  gap: 8px;
-}
+.bar span.active { background: #4caf50; }
+
 button {
-  padding: 8px;
+  margin-top: 6px;
+  padding: 6px;
   border: none;
   border-radius: 6px;
   background: #4caf50;
@@ -49,150 +61,175 @@ button {
 }
 button.delete {
   background: #e53935;
+  margin-left: 6px;
 }
-input, select, textarea {
+
+input, select {
   width: 100%;
-  padding: 8px;
-  font-size: 16px;
+  padding: 6px;
+  margin-top: 6px;
 }
+
 .menu-item {
-  background: #fff;
-  padding: 10px;
-  border-radius: 6px;
-  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f1f1f1;
+  padding: 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.menu-item span {
+  flex: 1;
 }
 </style>
 </head>
 <body>
 
-<h1>🥕 冷蔵庫メモ</h1>
+<h1>🍽️ 馬籠家の食卓</h1>
 
-<!-- 食材追加 -->
-<div class="section">
-  <h2>🧊 食材追加</h2>
+<div class="tabs">
+  <div class="tab active" onclick="showTab('stock', this)">在庫</div>
+  <div class="tab" onclick="showTab('menu', this)">献立</div>
+</div>
+
+<!-- 在庫 -->
+<div id="stock" class="section active">
   <input id="itemName" placeholder="食材名">
   <select id="itemPlace">
     <option value="fridge">冷蔵庫</option>
     <option value="freezer">冷凍庫</option>
   </select>
   <button onclick="addItem()">追加</button>
-</div>
 
-<!-- 冷蔵庫 -->
-<div class="section">
-  <h2>🧊 冷蔵庫</h2>
+  <h3>🧊 冷蔵庫</h3>
   <div id="fridge"></div>
-</div>
 
-<!-- 冷凍庫 -->
-<div class="section">
-  <h2>❄️ 冷凍庫</h2>
+  <h3>❄️ 冷凍庫</h3>
   <div id="freezer"></div>
 </div>
 
 <!-- 献立 -->
-<div class="section">
-  <h2>🍳 献立</h2>
-  <input type="date" id="menuDate">
-  <div class="row">
-    <input id="menuText" placeholder="料理名">
-    <button onclick="addMenu()">＋</button>
-  </div>
-  <div id="menuList"></div>
+<div id="menu" class="section">
+  <div id="menuWeek"></div>
 </div>
 
 <script>
-let state = JSON.parse(localStorage.getItem("items") || "[]");
-let menus = JSON.parse(localStorage.getItem("menus") || "{}");
+/* ---------- タブ ---------- */
+function showTab(id, el) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  el.classList.add("active");
+  document.getElementById(id).classList.add("active");
+}
 
-const fridgeDiv = document.getElementById("fridge");
-const freezerDiv = document.getElementById("freezer");
-const menuDateInput = document.getElementById("menuDate");
-menuDateInput.valueAsDate = new Date();
+/* ---------- 在庫 ---------- */
+let items = JSON.parse(localStorage.getItem("items") || "[]");
 
-function save() {
-  localStorage.setItem("items", JSON.stringify(state));
-  localStorage.setItem("menus", JSON.stringify(menus));
+function saveItems() {
+  localStorage.setItem("items", JSON.stringify(items));
 }
 
 function renderItems() {
-  fridgeDiv.innerHTML = "";
-  freezerDiv.innerHTML = "";
-
-  state.forEach((item, index) => {
+  fridge.innerHTML = freezer.innerHTML = "";
+  items.forEach((item, i) => {
     const box = document.createElement("div");
     box.className = "item";
-
-    const name = document.createElement("strong");
-    name.textContent = item.name;
+    box.innerHTML = `<strong>${item.name}</strong>`;
 
     const bar = document.createElement("div");
     bar.className = "bar";
     bar.onclick = () => {
       item.level = (item.level + 1) % 5;
-      save(); renderItems();
+      saveItems(); renderItems();
     };
 
-    for (let i = 0; i < 4; i++) {
-      const span = document.createElement("span");
-      if (i < item.level) span.classList.add("active");
-      bar.appendChild(span);
+    for (let j = 0; j < 4; j++) {
+      const s = document.createElement("span");
+      if (j < item.level) s.classList.add("active");
+      bar.appendChild(s);
     }
 
     const del = document.createElement("button");
     del.textContent = "削除";
     del.className = "delete";
     del.onclick = () => {
-      state.splice(index, 1);
-      save(); renderItems();
+      items.splice(i, 1);
+      saveItems(); renderItems();
     };
 
-    box.appendChild(name);
     box.appendChild(bar);
     box.appendChild(del);
-
-    (item.place === "fridge" ? fridgeDiv : freezerDiv).appendChild(box);
+    (item.place === "fridge" ? fridge : freezer).appendChild(box);
   });
 }
 
 function addItem() {
-  const name = itemName.value.trim();
-  const place = itemPlace.value;
-  if (!name) return;
-  state.push({ name, place, level: 0 });
+  if (!itemName.value) return;
+  items.push({ name: itemName.value, place: itemPlace.value, level: 0 });
   itemName.value = "";
-  save(); renderItems();
+  saveItems(); renderItems();
 }
 
-function renderMenu() {
-  const date = menuDateInput.value;
-  menuList.innerHTML = "";
-  (menus[date] || []).forEach((m, i) => {
-    const div = document.createElement("div");
-    div.className = "menu-item";
-    div.textContent = m;
-    div.onclick = () => {
-      menus[date].splice(i, 1);
-      save(); renderMenu();
+/* ---------- 献立（1週間＋曜日） ---------- */
+let menus = JSON.parse(localStorage.getItem("menus") || "{}");
+const weekdays = ["日", "月", "火", "水", "木", "金", "土"];
+
+function saveMenus() {
+  localStorage.setItem("menus", JSON.stringify(menus));
+}
+
+function renderMenuWeek() {
+  menuWeek.innerHTML = "";
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    const label = `${d.getMonth()+1}/${d.getDate()}（${weekdays[d.getDay()]}）`;
+
+    const box = document.createElement("div");
+    box.className = "menu-day";
+    box.innerHTML = `<strong>${label}</strong>`;
+
+    const input = document.createElement("input");
+    input.placeholder = "料理名を追加";
+    input.onkeydown = e => {
+      if (e.key === "Enter" && input.value) {
+        menus[key] = menus[key] || [];
+        menus[key].push(input.value);
+        input.value = "";
+        saveMenus(); renderMenuWeek();
+      }
     };
-    menuList.appendChild(div);
-  });
-}
+    box.appendChild(input);
 
-function addMenu() {
-  const date = menuDateInput.value;
-  const text = menuText.value.trim();
-  if (!text) return;
-  menus[date] = menus[date] || [];
-  menus[date].push(text);
-  menuText.value = "";
-  save(); renderMenu();
-}
+    (menus[key] || []).forEach((m, idx) => {
+      const row = document.createElement("div");
+      row.className = "menu-item";
 
-menuDateInput.onchange = renderMenu;
+      const name = document.createElement("span");
+      name.textContent = m;
+
+      const del = document.createElement("button");
+      del.textContent = "削除";
+      del.className = "delete";
+      del.onclick = () => {
+        menus[key].splice(idx, 1);
+        saveMenus(); renderMenuWeek();
+      };
+
+      row.appendChild(name);
+      row.appendChild(del);
+      box.appendChild(row);
+    });
+
+    menuWeek.appendChild(box);
+  }
+}
 
 renderItems();
-renderMenu();
+renderMenuWeek();
 </script>
 
 </body>
