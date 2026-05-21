@@ -1,127 +1,198 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>Fridge Note</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-      background: #f7f7f7;
-      padding: 16px;
-    }
-    h1 {
-      text-align: center;
-    }
-    h2 {
-      margin-top: 24px;
-    }
-    .item {
-      background: #fff;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-    }
-    .bar {
-      display: flex;
-      gap: 4px;
-      margin-top: 8px;
-    }
-    .bar span {
-      flex: 1;
-      height: 14px;
-      background: #ddd;
-      border-radius: 4px;
-    }
-    .bar span.active {
-      background: #4caf50;
-    }
-    input, textarea, button {
-      width: 100%;
-      margin-top: 8px;
-      padding: 8px;
-      font-size: 16px;
-    }
-    button {
-      background: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 6px;
-    }
-    textarea {
-      min-height: 80px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Fridge Note</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f7f7f7;
+  padding: 16px;
+}
+h1, h2, h3 {
+  text-align: center;
+}
+.section {
+  margin-bottom: 24px;
+}
+.item {
+  background: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+.bar {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.bar span {
+  flex: 1;
+  height: 14px;
+  background: #ddd;
+  border-radius: 4px;
+}
+.bar span.active {
+  background: #4caf50;
+}
+.row {
+  display: flex;
+  gap: 8px;
+}
+button {
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: #4caf50;
+  color: white;
+}
+button.delete {
+  background: #e53935;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  font-size: 16px;
+}
+.menu-item {
+  background: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+</style>
 </head>
 <body>
 
 <h1>🥕 冷蔵庫メモ</h1>
 
-<h2>🧊 食材</h2>
-<div id="items"></div>
+<!-- 食材追加 -->
+<div class="section">
+  <h2>🧊 食材追加</h2>
+  <input id="itemName" placeholder="食材名">
+  <select id="itemPlace">
+    <option value="fridge">冷蔵庫</option>
+    <option value="freezer">冷凍庫</option>
+  </select>
+  <button onclick="addItem()">追加</button>
+</div>
 
-<input id="newItem" placeholder="食材名を追加" />
-<button onclick="addItem()">追加</button>
+<!-- 冷蔵庫 -->
+<div class="section">
+  <h2>🧊 冷蔵庫</h2>
+  <div id="fridge"></div>
+</div>
 
-<h2>🍳 献立メモ</h2>
-<textarea id="menuMemo" placeholder="今日の献立・作りたいメモ"></textarea>
+<!-- 冷凍庫 -->
+<div class="section">
+  <h2>❄️ 冷凍庫</h2>
+  <div id="freezer"></div>
+</div>
+
+<!-- 献立 -->
+<div class="section">
+  <h2>🍳 献立</h2>
+  <input type="date" id="menuDate">
+  <div class="row">
+    <input id="menuText" placeholder="料理名">
+    <button onclick="addMenu()">＋</button>
+  </div>
+  <div id="menuList"></div>
+</div>
 
 <script>
-let state = JSON.parse(localStorage.getItem("fridgeState") || "{}");
-let menuMemo = localStorage.getItem("menuMemo") || "";
+let state = JSON.parse(localStorage.getItem("items") || "[]");
+let menus = JSON.parse(localStorage.getItem("menus") || "{}");
 
-const itemsDiv = document.getElementById("items");
-const memoArea = document.getElementById("menuMemo");
-memoArea.value = menuMemo;
+const fridgeDiv = document.getElementById("fridge");
+const freezerDiv = document.getElementById("freezer");
+const menuDateInput = document.getElementById("menuDate");
+menuDateInput.valueAsDate = new Date();
 
-memoArea.addEventListener("input", () => {
-  localStorage.setItem("menuMemo", memoArea.value);
-});
-
-function saveState() {
-  localStorage.setItem("fridgeState", JSON.stringify(state));
+function save() {
+  localStorage.setItem("items", JSON.stringify(state));
+  localStorage.setItem("menus", JSON.stringify(menus));
 }
 
-function render() {
-  itemsDiv.innerHTML = "";
-  Object.keys(state).forEach(id => {
-    const item = document.createElement("div");
-    item.className = "item";
+function renderItems() {
+  fridgeDiv.innerHTML = "";
+  freezerDiv.innerHTML = "";
+
+  state.forEach((item, index) => {
+    const box = document.createElement("div");
+    box.className = "item";
 
     const name = document.createElement("strong");
-    name.textContent = id;
+    name.textContent = item.name;
 
     const bar = document.createElement("div");
     bar.className = "bar";
     bar.onclick = () => {
-      state[id] = (state[id] + 1) % 5;
-      saveState();
-      render();
+      item.level = (item.level + 1) % 5;
+      save(); renderItems();
     };
 
     for (let i = 0; i < 4; i++) {
       const span = document.createElement("span");
-      if (i < state[id]) span.classList.add("active");
+      if (i < item.level) span.classList.add("active");
       bar.appendChild(span);
     }
 
-    item.appendChild(name);
-    item.appendChild(bar);
-    itemsDiv.appendChild(item);
+    const del = document.createElement("button");
+    del.textContent = "削除";
+    del.className = "delete";
+    del.onclick = () => {
+      state.splice(index, 1);
+      save(); renderItems();
+    };
+
+    box.appendChild(name);
+    box.appendChild(bar);
+    box.appendChild(del);
+
+    (item.place === "fridge" ? fridgeDiv : freezerDiv).appendChild(box);
   });
 }
 
 function addItem() {
-  const input = document.getElementById("newItem");
-  const name = input.value.trim();
-  if (!name || state[name] !== undefined) return;
-  state[name] = 0;
-  input.value = "";
-  saveState();
-  render();
+  const name = itemName.value.trim();
+  const place = itemPlace.value;
+  if (!name) return;
+  state.push({ name, place, level: 0 });
+  itemName.value = "";
+  save(); renderItems();
 }
 
-render();
+function renderMenu() {
+  const date = menuDateInput.value;
+  menuList.innerHTML = "";
+  (menus[date] || []).forEach((m, i) => {
+    const div = document.createElement("div");
+    div.className = "menu-item";
+    div.textContent = m;
+    div.onclick = () => {
+      menus[date].splice(i, 1);
+      save(); renderMenu();
+    };
+    menuList.appendChild(div);
+  });
+}
+
+function addMenu() {
+  const date = menuDateInput.value;
+  const text = menuText.value.trim();
+  if (!text) return;
+  menus[date] = menus[date] || [];
+  menus[date].push(text);
+  menuText.value = "";
+  save(); renderMenu();
+}
+
+menuDateInput.onchange = renderMenu;
+
+renderItems();
+renderMenu();
 </script>
 
 </body>
