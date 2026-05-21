@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fridge Note</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f7f7f7;
+      padding: 16px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .item {
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .bar span {
+      flex: 1;
+      height: 12px;
+      background: #ddd;
+      border-radius: 4px;
+    }
+    .bar span.active {
+      background: #4caf50;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🥕 冷蔵庫メモ</h1>
+
+<div class="item">
+  <strong>にんじん</strong>
+  <div class="bar">
+    <span class="active"></span>
+    <span class="active"></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+<div class="item">
+  <strong>牛乳</strong>
+  <div class="bar">
+    <span class="active"></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+
+</body>
+</html>
