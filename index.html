@@ -26,7 +26,7 @@
     }
     .bar span {
       flex: 1;
-      height: 12px;
+      height: 14px;
       background: #ddd;
       border-radius: 4px;
     }
@@ -41,7 +41,7 @@
 
 <div class="item">
   <strong>にんじん</strong>
-  <div class="bar">
+  <div class="bar" onclick="setLevel(this)">
     <span class="active"></span>
     <span class="active"></span>
     <span></span>
@@ -51,13 +51,30 @@
 
 <div class="item">
   <strong>牛乳</strong>
-  <div class="bar">
+  <div class="bar" onclick="setLevel(this)">
     <span class="active"></span>
     <span></span>
     <span></span>
     <span></span>
   </div>
 </div>
+
+<script>
+function setLevel(bar) {
+  const spans = bar.querySelectorAll("span");
+  let activeCount = 0;
+
+  spans.forEach(span => {
+    if (span.classList.contains("active")) activeCount++;
+  });
+
+  const next = (activeCount + 1) % (spans.length + 1);
+
+  spans.forEach((span, i) => {
+    span.classList.toggle("active", i < next);
+  });
+}
+</script>
 
 </body>
 </html>
