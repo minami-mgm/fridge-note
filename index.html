@@ -48,7 +48,6 @@ section.active {
   display: block;
 }
 
-/* ===== 共通 ===== */
 .input-large {
   width: 100%;
   font-size: 16px;
@@ -56,13 +55,19 @@ section.active {
   margin-bottom: 8px;
 }
 
-/* ===== 在庫 ===== */
+/* ===== 在庫カテゴリ ===== */
 .category {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  padding: 8px;
+  border-radius: 10px;
 }
 
+.category.rei { background: #e8f4ff; border: 2px solid #90caf9; }
+.category.to { background: #e8fff0; border: 2px solid #81c784; }
+.category.other { background: #fff8e1; border: 2px solid #ffcc80; }
+
 .category h3 {
-  margin: 6px 0;
+  margin: 4px 0 8px;
   font-size: 14px;
 }
 
@@ -87,6 +92,7 @@ section.active {
   align-items: center;
 }
 
+/* ===== 残量バー（5段階） ===== */
 .bar {
   display: flex;
   gap: 2px;
@@ -101,9 +107,11 @@ section.active {
   background: #ddd;
 }
 
-.bar.lv1 div:nth-child(1) { background: #4caf50; }
-.bar.lv2 div:nth-child(-n+2) { background: #4caf50; }
-.bar.lv3 div { background: #4caf50; }
+/* 残量 */
+.bar.lv3 div { background: #4caf50; }                 /* ■■■ 緑 */
+.bar.lv2 div:nth-child(-n+2) { background: #ff9800; } /* ■■□ オレンジ */
+.bar.lv1 div:nth-child(1) { background: #f44336; }    /* ■□□ 赤 */
+.bar.lv0 div { background: #ccc; }                    /* □□□ グレー */
 
 /* ===== 献立 ===== */
 .day {
@@ -165,7 +173,6 @@ section.active {
     <option value="冷凍庫">冷凍庫</option>
     <option value="その他">その他</option>
   </select>
-
   <div id="inventory"></div>
 </section>
 
@@ -181,93 +188,72 @@ section.active {
 </section>
 
 <script>
+/* ===== 保存 ===== */
+const save = (k,d) => localStorage.setItem(k, JSON.stringify(d));
+const load = (k,d) => JSON.parse(localStorage.getItem(k)) || d;
+
 /* ===== タブ ===== */
 function openTab(i) {
-  document.querySelectorAll("section").forEach((s, n) => s.classList.toggle("active", n === i));
-  document.querySelectorAll("nav button").forEach((b, n) => b.classList.toggle("active", n === i));
+  document.querySelectorAll("section").forEach((s,n)=>s.classList.toggle("active",n===i));
+  document.querySelectorAll("nav button").forEach((b,n)=>b.classList.toggle("active",n===i));
 }
 
 /* ===== 在庫 ===== */
+const inventoryData = load("inventory", []);
 const inventory = {};
-["冷蔵庫","冷凍庫","その他"].forEach(c => {
-  inventory[c] = document.createElement("div");
-  inventory[c].innerHTML = `<div class="category"><h3>${c}</h3><div class="grid"></div></div>`;
-  document.getElementById("inventory").appendChild(inventory[c]);
+const catClass = { "冷蔵庫":"rei","冷凍庫":"to","その他":"other" };
+
+Object.keys(catClass).forEach(c=>{
+  const d=document.createElement("div");
+  d.className=`category ${catClass[c]}`;
+  d.innerHTML=`<h3>${c}</h3><div class="grid"></div>`;
+  inventory[c]=d.querySelector(".grid");
+  document.getElementById("inventory").appendChild(d);
 });
 
-document.getElementById("foodInput").onkeydown = e => {
-  if (e.key === "Enter" && e.target.value) {
-    const name = e.target.value;
-    const cat = document.getElementById("categorySelect").value;
-    const grid = inventory[cat].querySelector(".grid");
+function renderInventory(){
+  Object.values(inventory).forEach(g=>g.innerHTML="");
+  inventoryData.forEach((it,i)=>{
+    const item=document.createElement("div");
+    item.className="item";
 
-    let level = 3;
-    const item = document.createElement("div");
-    item.className = "item";
-
-    const bar = document.createElement("div");
-    bar.className = "bar lv3";
-    bar.innerHTML = "<div></div><div></div><div></div>";
-    bar.onclick = () => {
-      level = level === 1 ? 3 : level - 1;
-      bar.className = "bar lv" + level;
+    let level=it.level;
+    const bar=document.createElement("div");
+    bar.className="bar lv"+level;
+    bar.innerHTML="<div></div><div></div><div></div>";
+    bar.onclick=()=>{
+      level = level===0 ? 3 : level-1;
+      it.level=level;
+      bar.className="bar lv"+level;
+      save("inventory",inventoryData);
     };
 
-    item.innerHTML = `
+    item.innerHTML=`
       <div class="item-top">
-        <span>${name}</span>
-        <button onclick="this.closest('.item').remove()">削除</button>
-      </div>
-    `;
+        <span>${it.name}</span>
+        <button onclick="removeItem(${i})">削除</button>
+      </div>`;
     item.appendChild(bar);
-    grid.appendChild(item);
-    e.target.value = "";
-  }
-};
-
-/* ===== 献立 ===== */
-const days = ["日","月","火","水","木","金","土"];
-const menu = document.getElementById("menu");
-const today = new Date();
-
-for (let i = -2; i <= 3; i++) {
-  const date = new Date();
-  date.setDate(today.getDate() + i);
-  const dayIndex = date.getDay();
-
-  const div = document.createElement("div");
-  div.className = "day" + (i === 0 ? " today" : "");
-
-  div.innerHTML = `
-    <h3>${date.getMonth()+1}/${date.getDate()}（${days[dayIndex]}）</h3>
-    <input class="meal-input" placeholder="料理名">
-  `;
-
-  const input = div.querySelector("input");
-  input.onkeydown = e => {
-    if (e.key === "Enter" && input.value) {
-      const meal = document.createElement("div");
-      meal.className = "meal";
-      meal.innerHTML = `<span>${input.value}</span><button onclick="this.parentNode.remove()">削除</button>`;
-      div.appendChild(meal);
-      input.value = "";
-    }
-  };
-
-  menu.appendChild(div);
+    inventory[it.cat].appendChild(item);
+  });
 }
 
-/* ===== 買い物 ===== */
-const shopList = document.getElementById("shopList");
-document.getElementById("shopInput").onkeydown = e => {
-  if (e.key === "Enter" && e.target.value) {
-    const div = document.createElement("div");
-    div.className = "shop-item";
-    div.innerHTML = `<span>${e.target.value}</span><button onclick="this.parentNode.remove()">削除</button>`;
-    shopList.appendChild(div);
-    e.target.value = "";
+function removeItem(i){
+  inventoryData.splice(i,1);
+  save("inventory",inventoryData);
+  renderInventory();
+}
+
+foodInput.onkeydown=e=>{
+  if(e.key==="Enter" && e.target.value){
+    inventoryData.push({name:e.target.value,cat:categorySelect.value,level:3});
+    save("inventory",inventoryData);
+    e.target.value="";
+    renderInventory();
   }
 };
+
+renderInventory();
 </script>
 </body>
 </html>
