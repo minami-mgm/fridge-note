@@ -232,14 +232,7 @@ function removeItem(i){
   save("inventory",inventoryData);
   renderInventory();
 }
-foodInput.onkeydown=e=>{
-  if(e.key==="Enter"&&e.target.value){
-    inventoryData.push({name:e.target.value,cat:categorySelect.value,level:3});
-    save("inventory",inventoryData);
-    e.target.value="";
-    renderInventory();
-  }
-};
+
 renderInventory();
 
 /* 献立（復活） */
