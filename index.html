@@ -115,6 +115,16 @@ section.active {
   margin: 0 0 6px;
   font-size: 15px;
 }
+.day.past {
+  background: #f2f2f2;
+  border: 1px solid #ccc;
+  color: #666;
+}
+
+.day.future {
+  background: #fff8e1;
+  border: 1px solid #ffcc80;
+}
 .meal-input {
   width: 100%;
   font-size: 16px;
@@ -149,12 +159,6 @@ section.active {
 </nav>
 
 <section class="active">
-  <input class="input-large" id="foodInput" placeholder="食材名">
-  <select id="categorySelect" class="input-large">
-    <option>冷蔵庫</option>
-    <option>冷凍庫</option>
-    <option>その他</option>
-  </select>
   <div id="inventory"></div>
 </section>
 
@@ -182,11 +186,24 @@ const inventoryData=load("inventory",[]);
 const inventory={};
 const catClass={冷蔵庫:"rei",冷凍庫:"to",その他:"other"};
 
-Object.keys(catClass).forEach(c=>{
+Object.keys(catClass).forEach(cat=>{
   const d=document.createElement("div");
-  d.className=`category ${catClass[c]}`;
-  d.innerHTML=`<h3>${c}</h3><div class="grid"></div>`;
-  inventory[c]=d.querySelector(".grid");
+  d.className=`category ${catClass[cat]}`;
+  d.innerHTML=`
+    <h3>${cat}</h3>
+    <input class="input-large" placeholder="${cat}の食材を追加">
+    <div class="grid"></div>
+  `;
+  const input=d.querySelector("input");
+  input.onkeydown=e=>{
+    if(e.key==="Enter"&&e.target.value){
+      inventoryData.push({name:e.target.value,cat:cat,level:3});
+      save("inventory",inventoryData);
+      e.target.value="";
+      renderInventory();
+    }
+  };
+  inventory[cat]=d.querySelector(".grid");
   document.getElementById("inventory").appendChild(d);
 });
 
@@ -236,7 +253,13 @@ for(let i=-2;i<=3;i++){
   d.setDate(today.getDate()+i);
   const key=d.toDateString();
   const box=document.createElement("div");
-  box.className="day"+(i===0?" today":"");
+  if(i===0){
+  box.className="day today";
+}else if(i<0){
+  box.className="day past";
+}else{
+  box.className="day future";
+}
   box.innerHTML=`<h3>${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）</h3><input class="meal-input" placeholder="料理名">`;
   const list=document.createElement("div");
   (menuData[key]||[]).forEach(m=>{
