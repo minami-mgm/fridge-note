@@ -48,42 +48,6 @@ section.active {
   display: block;
 }
 
-/* ===== 献立 ===== */
-.week {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.day {
-  background: #fff;
-  padding: 8px;
-  border-radius: 8px;
-}
-
-.day.today {
-  border: 2px solid #4caf50;
-  background: #f0fff3;
-}
-
-.day h3 {
-  margin: 0 0 6px;
-  font-size: 14px;
-}
-
-.meal-input {
-  width: 100%;
-  font-size: 16px;
-  padding: 6px;
-}
-
-.meal {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-top: 4px;
-}
-
 /* ===== 在庫 ===== */
 .input-large {
   width: 100%;
@@ -100,7 +64,7 @@ section.active {
 
 .item {
   background: #fff;
-  padding: 6px;
+  padding: 8px;
   border-radius: 6px;
   font-size: 13px;
 }
@@ -108,7 +72,7 @@ section.active {
 .bar {
   height: 8px;
   border-radius: 4px;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .lv4 { background: #2e7d32; }
@@ -116,14 +80,45 @@ section.active {
 .lv2 { background: #fff176; }
 .lv1 { background: #e57373; }
 
+/* ===== 献立 ===== */
+.day {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.day.today {
+  border: 2px solid #4caf50;
+  background: #f0fff3;
+}
+
+.day h3 {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+
+.meal-input {
+  width: 100%;
+  font-size: 16px;
+  padding: 6px;
+}
+
+.meal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
 /* ===== 買い物 ===== */
 .shop-item {
   display: flex;
   justify-content: space-between;
   background: #fff;
-  padding: 6px;
-  margin-bottom: 4px;
-  font-size: 14px;
+  padding: 8px;
+  margin-bottom: 6px;
+  font-size: 15px;
 }
 </style>
 </head>
@@ -132,20 +127,20 @@ section.active {
 <header>馬籠家の食卓🍽️</header>
 
 <nav>
-  <button class="active" onclick="openTab(0)">献立</button>
-  <button onclick="openTab(1)">在庫</button>
+  <button class="active" onclick="openTab(0)">在庫</button>
+  <button onclick="openTab(1)">献立</button>
   <button onclick="openTab(2)">買い物</button>
 </nav>
 
-<!-- 献立 -->
-<section class="active">
-  <div class="week" id="week"></div>
-</section>
-
 <!-- 在庫 -->
-<section>
+<section class="active">
   <input class="input-large" id="foodInput" placeholder="食材を追加">
   <div class="grid" id="foods"></div>
+</section>
+
+<!-- 献立 -->
+<section>
+  <div id="menu"></div>
 </section>
 
 <!-- 買い物 -->
@@ -161,41 +156,61 @@ function openTab(i) {
   document.querySelectorAll("nav button").forEach((b, n) => b.classList.toggle("active", n === i));
 }
 
-/* ===== 献立 ===== */
-const days = ["日","月","火","水","木","金","土"];
-const today = new Date().getDay();
-const week = document.getElementById("week");
-
-days.forEach((d, i) => {
-  const div = document.createElement("div");
-  div.className = "day" + (i === today ? " today" : "");
-  div.innerHTML = `<h3>${d}</h3><input class="meal-input" placeholder="料理名">`;
-  const input = div.querySelector("input");
-  input.onkeydown = e => {
-    if (e.key === "Enter" && input.value) {
-      const m = document.createElement("div");
-      m.className = "meal";
-      m.innerHTML = `<span>${input.value}</span><button onclick="this.parentNode.remove()">削除</button>`;
-      div.appendChild(m);
-      input.value = "";
-    }
-  };
-  week.appendChild(div);
-});
-
 /* ===== 在庫 ===== */
 const foods = document.getElementById("foods");
 document.getElementById("foodInput").onkeydown = e => {
   if (e.key === "Enter" && e.target.value) {
-    const lv = Math.floor(Math.random() * 4) + 1;
     const div = document.createElement("div");
     div.className = "item";
-    div.innerHTML = `${e.target.value}
-      <div class="bar lv${lv}"></div>`;
+    let level = 4;
+
+    const bar = document.createElement("div");
+    bar.className = "bar lv4";
+
+    bar.onclick = () => {
+      level = level === 1 ? 4 : level - 1;
+      bar.className = "bar lv" + level;
+    };
+
+    div.innerHTML = `<div>${e.target.value}</div>`;
+    div.appendChild(bar);
     foods.appendChild(div);
     e.target.value = "";
   }
 };
+
+/* ===== 献立 ===== */
+const days = ["日","月","火","水","木","金","土"];
+const menu = document.getElementById("menu");
+const today = new Date();
+const todayIndex = today.getDay();
+
+for (let i = 0; i < 7; i++) {
+  const date = new Date();
+  date.setDate(today.getDate() + i);
+  const dayIndex = date.getDay();
+
+  const div = document.createElement("div");
+  div.className = "day" + (dayIndex === todayIndex ? " today" : "");
+
+  div.innerHTML = `
+    <h3>${date.getMonth()+1}/${date.getDate()}（${days[dayIndex]}）</h3>
+    <input class="meal-input" placeholder="料理名">
+  `;
+
+  const input = div.querySelector("input");
+  input.onkeydown = e => {
+    if (e.key === "Enter" && input.value) {
+      const meal = document.createElement("div");
+      meal.className = "meal";
+      meal.innerHTML = `<span>${input.value}</span><button onclick="this.parentNode.remove()">削除</button>`;
+      div.appendChild(meal);
+      input.value = "";
+    }
+  };
+
+  menu.appendChild(div);
+}
 
 /* ===== 買い物 ===== */
 const shopList = document.getElementById("shopList");
