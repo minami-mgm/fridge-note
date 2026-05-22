@@ -157,6 +157,12 @@ section.active {
 </section>
 
 <section>
+  <input
+    id="menuInput"
+    type="text"
+    placeholder="料理名を入力"
+    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addMenu(); }"
+  >
   <div id="menu"></div>
 </section>
 
