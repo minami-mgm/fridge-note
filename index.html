@@ -157,12 +157,6 @@ section.active {
 </section>
 
 <section>
-  <input
-    id="menuInput"
-    type="text"
-    placeholder="料理名を入力"
-    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addMenu(); }"
-  >
   <div id="menu"></div>
 </section>
 
@@ -255,14 +249,28 @@ for(let i=-2;i<=3;i++){
     list.appendChild(row);
   });
   box.appendChild(list);
-  box.querySelector("input").onkeydown=e=>{
-    if(e.key==="Enter"&&e.target.value){
-      menuData[key]=menuData[key]||[];
-      menuData[key].push(e.target.value);
-      save("menu",menuData);
-      location.reload();
-    }
-  };
+  box.querySelector("input").onkeydown = e => {
+  if (e.key === "Enter" && e.target.value) {
+    e.preventDefault(); // ← これが超大事
+
+    menuData[key] = menuData[key] || [];
+    menuData[key].push(e.target.value);
+    save("menu", menuData);
+
+    // 画面をリロードせず、その場で追加
+    const row = document.createElement("div");
+    row.className = "meal";
+    row.innerHTML = `<span>${e.target.value}</span><button>削除</button>`;
+    row.querySelector("button").onclick = () => {
+      menuData[key] = menuData[key].filter(x => x !== e.target.value);
+      save("menu", menuData);
+      row.remove();
+    };
+
+    e.target.value = "";
+    box.querySelector("div").appendChild(row);
+  }
+};
   menu.appendChild(box);
 }
 
