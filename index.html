@@ -48,12 +48,22 @@ section.active {
   display: block;
 }
 
-/* ===== 在庫 ===== */
+/* ===== 共通 ===== */
 .input-large {
   width: 100%;
   font-size: 16px;
   padding: 8px;
   margin-bottom: 8px;
+}
+
+/* ===== 在庫 ===== */
+.category {
+  margin-bottom: 12px;
+}
+
+.category h3 {
+  margin: 6px 0;
+  font-size: 14px;
 }
 
 .grid {
@@ -67,18 +77,33 @@ section.active {
   padding: 8px;
   border-radius: 6px;
   font-size: 13px;
+  display: flex;
+  flex-direction: column;
+}
+
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .bar {
-  height: 8px;
-  border-radius: 4px;
+  display: flex;
+  gap: 2px;
   margin-top: 6px;
+  cursor: pointer;
 }
 
-.lv4 { background: #2e7d32; }
-.lv3 { background: #81c784; }
-.lv2 { background: #fff176; }
-.lv1 { background: #e57373; }
+.bar div {
+  flex: 1;
+  height: 8px;
+  border-radius: 3px;
+  background: #ddd;
+}
+
+.bar.lv1 div:nth-child(1) { background: #4caf50; }
+.bar.lv2 div:nth-child(-n+2) { background: #4caf50; }
+.bar.lv3 div { background: #4caf50; }
 
 /* ===== 献立 ===== */
 .day {
@@ -134,8 +159,14 @@ section.active {
 
 <!-- 在庫 -->
 <section class="active">
-  <input class="input-large" id="foodInput" placeholder="食材を追加">
-  <div class="grid" id="foods"></div>
+  <input class="input-large" id="foodInput" placeholder="食材名">
+  <select id="categorySelect" class="input-large">
+    <option value="冷蔵庫">冷蔵庫</option>
+    <option value="冷凍庫">冷凍庫</option>
+    <option value="その他">その他</option>
+  </select>
+
+  <div id="inventory"></div>
 </section>
 
 <!-- 献立 -->
@@ -157,24 +188,39 @@ function openTab(i) {
 }
 
 /* ===== 在庫 ===== */
-const foods = document.getElementById("foods");
+const inventory = {};
+["冷蔵庫","冷凍庫","その他"].forEach(c => {
+  inventory[c] = document.createElement("div");
+  inventory[c].innerHTML = `<div class="category"><h3>${c}</h3><div class="grid"></div></div>`;
+  document.getElementById("inventory").appendChild(inventory[c]);
+});
+
 document.getElementById("foodInput").onkeydown = e => {
   if (e.key === "Enter" && e.target.value) {
-    const div = document.createElement("div");
-    div.className = "item";
-    let level = 4;
+    const name = e.target.value;
+    const cat = document.getElementById("categorySelect").value;
+    const grid = inventory[cat].querySelector(".grid");
+
+    let level = 3;
+    const item = document.createElement("div");
+    item.className = "item";
 
     const bar = document.createElement("div");
-    bar.className = "bar lv4";
-
+    bar.className = "bar lv3";
+    bar.innerHTML = "<div></div><div></div><div></div>";
     bar.onclick = () => {
-      level = level === 1 ? 4 : level - 1;
+      level = level === 1 ? 3 : level - 1;
       bar.className = "bar lv" + level;
     };
 
-    div.innerHTML = `<div>${e.target.value}</div>`;
-    div.appendChild(bar);
-    foods.appendChild(div);
+    item.innerHTML = `
+      <div class="item-top">
+        <span>${name}</span>
+        <button onclick="this.closest('.item').remove()">削除</button>
+      </div>
+    `;
+    item.appendChild(bar);
+    grid.appendChild(item);
     e.target.value = "";
   }
 };
@@ -183,15 +229,14 @@ document.getElementById("foodInput").onkeydown = e => {
 const days = ["日","月","火","水","木","金","土"];
 const menu = document.getElementById("menu");
 const today = new Date();
-const todayIndex = today.getDay();
 
-for (let i = 0; i < 7; i++) {
+for (let i = -2; i <= 3; i++) {
   const date = new Date();
   date.setDate(today.getDate() + i);
   const dayIndex = date.getDay();
 
   const div = document.createElement("div");
-  div.className = "day" + (dayIndex === todayIndex ? " today" : "");
+  div.className = "day" + (i === 0 ? " today" : "");
 
   div.innerHTML = `
     <h3>${date.getMonth()+1}/${date.getDate()}（${days[dayIndex]}）</h3>
