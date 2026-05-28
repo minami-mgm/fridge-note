@@ -2,31 +2,27 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>馬籠家の食卓</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>馬籠家の食卓🍽️</title>
 
 <style>
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   margin: 0;
-  background: #fafafa;
+  background: #f6f6f6;
 }
-
 header {
-  background: #f4a261;
-  color: white;
+  background: #fff;
   padding: 12px;
   text-align: center;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: bold;
 }
-
 nav {
   display: flex;
-  background: white;
+  background: #fff;
   border-bottom: 1px solid #ddd;
 }
-
 nav button {
   flex: 1;
   padding: 10px;
@@ -34,177 +30,275 @@ nav button {
   background: none;
   font-size: 14px;
 }
-
 nav button.active {
-  background: #ffe8d6;
+  border-bottom: 3px solid #4caf50;
   font-weight: bold;
 }
-
 section {
   display: none;
-  padding: 12px;
+  padding: 10px;
 }
-
 section.active {
   display: block;
 }
-
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.past { background: #eee; }
-.today { background: #ffe0b2; }
-.future { background: #fff3bf; }
-
-h3 {
-  margin: 4px 0;
-  font-size: 15px;
-}
-
-input, select, button {
+.input {
+  width: 100%;
+  font-size: 16px;
   padding: 6px;
-  font-size: 14px;
-}
-
-.list-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   margin-bottom: 6px;
 }
 
-.small {
-  font-size: 12px;
-  color: #666;
+/* 在庫 */
+.category {
+  margin-bottom: 14px;
+  padding: 8px;
+  border-radius: 10px;
+}
+.rei { background:#e8f4ff; border:2px solid #90caf9;}
+.to { background:#e8fff0; border:2px solid #81c784;}
+.other { background:#fff8e1; border:2px solid #ffcc80;}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 6px;
+}
+.item {
+  background:#fff;
+  padding:6px;
+  border-radius:6px;
+  font-size:13px;
+}
+.item-top {
+  display:flex;
+  justify-content:space-between;
 }
 
-.action-btn {
-  width: 100%;
-  margin-top: 10px;
-  background: #f4a261;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 10px;
+.bar {
+  display:flex;
+  gap:2px;
+  margin-top:4px;
+}
+.bar div {
+  flex:1;
+  height:8px;
+  border-radius:3px;
+  background:#ddd;
+}
+.lv3 div { background:#4caf50;}
+.lv2 div:nth-child(-n+2){ background:#ff9800;}
+.lv1 div:nth-child(1){ background:#f44336;}
+.lv0 div { background:#ccc;}
+
+/* 献立 */
+.day {
+  background:#fff;
+  padding:8px;
+  border-radius:8px;
+  margin-bottom:10px;
+}
+.day.today { background:#f0fff3; border:2px solid #4caf50;}
+.day.past { background:#eee; color:#666;}
+.day.future { background:#fff8e1;}
+
+.meal {
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  margin-top:4px;
+}
+
+/* 買い物 */
+.shop-item {
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#fff;
+  padding:6px;
+  margin-bottom:6px;
 }
 </style>
 </head>
 
 <body>
-
-<header>馬籠家の食卓</header>
+<header>馬籠家の食卓🍽️</header>
 
 <nav>
-  <button class="active" onclick="showTab('toppage')">献立</button>
-  <button onclick="showTab('ryota')">凌大ごはん</button>
-  <button onclick="showTab('shopping')">買い物</button>
-  <button onclick="showTab('stock')">在庫</button>
+  <button class="active" onclick="openTab(0)">在庫</button>
+  <button onclick="openTab(1)">献立</button>
+  <button onclick="openTab(2)">凌大ごはん</button>
+  <button onclick="openTab(3)">買い物</button>
 </nav>
 
-<!-- 献立 -->
-<section id="toppage" class="active">
-  <div class="card past">
-    <h3>昨日</h3>
-    <div class="small">カレー</div>
-  </div>
-  <div class="card today">
-    <h3>今日</h3>
-    <div>焼き魚・味噌汁</div>
-  </div>
-  <div class="card future">
-    <h3>明日</h3>
-    <div>親子丼</div>
-  </div>
-  <div class="card future">
-    <h3>明後日</h3>
-    <div>シチュー</div>
-  </div>
-</section>
+<section class="active"><div id="inventory"></div></section>
+<section><div id="menu"></div></section>
+<section><div id="ryota"></div></section>
 
-<!-- 凌大ごはん -->
-<section id="ryota">
-  <div class="card past">
-    <h3>昨日</h3>
-    朝：野菜がゆ<br>夕：豆腐煮
-  </div>
-  <div class="card today">
-    <h3>今日</h3>
-    朝：パンがゆ<br>夕：鶏そぼろ
-  </div>
-  <div class="card future">
-    <h3>明日</h3>
-    朝：うどん<br>夕：白身魚
-  </div>
-  <div class="card future">
-    <h3>明後日</h3>
-    朝：おかゆ<br>夕：野菜煮
-  </div>
-</section>
-
-<!-- 買い物 -->
-<section id="shopping">
-  <div class="card">
-    <div class="list-item">
-      <input type="checkbox" class="buy"> 玉ねぎ
-    </div>
-    <div class="list-item">
-      <input type="checkbox" class="buy"> 牛乳
-    </div>
-    <div class="list-item">
-      <input type="checkbox" class="buy"> 冷凍うどん
-    </div>
-
-    <button onclick="checkAll()">すべてチェック</button>
-    <button class="action-btn" onclick="toStockConfirm()">在庫に入れる</button>
-  </div>
-</section>
-
-<!-- 在庫 -->
-<section id="stock">
-  <div id="stockArea"></div>
+<section>
+  <input class="input" id="shopInput" placeholder="買うものを入力してEnter">
+  <button onclick="checkAllShop()">☑ 全部にチェック</button>
+  <button onclick="moveToInventory()">📦 在庫に追加</button>
+  <div id="shopList"></div>
 </section>
 
 <script>
-function showTab(id) {
-  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
+/* 共通 */
+const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
+const load=(k,d)=>JSON.parse(localStorage.getItem(k))||d;
+
+function openTab(i){
+  document.querySelectorAll("section").forEach((s,n)=>s.classList.toggle("active",n===i));
+  document.querySelectorAll("nav button").forEach((b,n)=>b.classList.toggle("active",n===i));
 }
 
-function checkAll() {
-  document.querySelectorAll('.buy').forEach(c => c.checked = true);
-}
+/* 在庫 */
+const inventoryData = load("inventory",[]);
+const categoryHistory = load("catHistory", {});
+const cats={冷蔵庫:"rei",冷凍庫:"to",その他:"other"};
+const inv=document.getElementById("inventory");
+const grids={};
 
-function classify(name) {
-  if (name.includes('冷凍')) return '冷凍庫';
-  if (['牛乳','肉','魚','野菜','玉ねぎ'].some(v => name.includes(v))) return '冷蔵庫';
-  return 'その他';
-}
+Object.entries(cats).forEach(([name,cls])=>{
+  const d=document.createElement("div");
+  d.className=`category ${cls}`;
+  d.innerHTML=`<h3>${name}</h3>
+    <input class="input" placeholder="${name}に追加">
+    <div class="grid"></div>`;
+  d.querySelector("input").onkeydown=e=>{
+    if(e.key==="Enter"&&e.target.value){
+      inventoryData.push({name:e.target.value,cat:name,level:3});
+      categoryHistory[e.target.value]=name;
+      save("inventory",inventoryData);
+      save("catHistory",categoryHistory);
+      e.target.value="";
+      renderInventory();
+    }
+  };
+  grids[name]=d.querySelector(".grid");
+  inv.appendChild(d);
+});
 
-function toStockConfirm() {
-  const stockArea = document.getElementById('stockArea');
-  stockArea.innerHTML = '';
-  document.querySelectorAll('.buy:checked').forEach(item => {
-    const name = item.parentElement.textContent.trim();
-    const cat = classify(name);
-    stockArea.innerHTML += `
-      <div class="card">
-        ${name}
-        <select>
-          <option ${cat==='冷蔵庫'?'selected':''}>冷蔵庫</option>
-          <option ${cat==='冷凍庫'?'selected':''}>冷凍庫</option>
-          <option ${cat==='その他'?'selected':''}>その他</option>
-        </select>
-      </div>`;
+function renderInventory(){
+  Object.values(grids).forEach(g=>g.innerHTML="");
+  inventoryData.forEach((it,i)=>{
+    const d=document.createElement("div");
+    d.className="item";
+    d.innerHTML=`<div class="item-top">
+      <span>${it.name}</span>
+      <button onclick="delInv(${i})">削除</button></div>`;
+    const bar=document.createElement("div");
+    bar.className=`bar lv${it.level}`;
+    bar.innerHTML="<div></div><div></div><div></div>";
+    bar.onclick=()=>{
+      it.level=it.level===0?3:it.level-1;
+      save("inventory",inventoryData);
+      renderInventory();
+    };
+    d.appendChild(bar);
+    grids[it.cat].appendChild(d);
   });
-  showTab('stock');
 }
-</script>
+function delInv(i){
+  inventoryData.splice(i,1);
+  save("inventory",inventoryData);
+  renderInventory();
+}
+renderInventory();
 
+/* 献立（区分けなし） */
+function renderMenu(){
+  const data=load("menu",{});
+  const box=document.getElementById("menu");
+  box.innerHTML="";
+  const today=new Date();
+  const days=["日","月","火","水","木","金","土"];
+
+  for(let i=-1;i<=2;i++){
+    const d=new Date();
+    d.setDate(today.getDate()+i);
+    const key=d.toDateString();
+    const day=document.createElement("div");
+    day.className=`day ${i<0?"past":i===0?"today":"future"}`;
+    day.innerHTML=`<h3>${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）</h3>`;
+
+    const input=document.createElement("input");
+    input.className="input";
+    input.placeholder="料理を追加";
+
+    const list=document.createElement("div");
+    (data[key]||[]).forEach(m=>addMeal(list,data,key,m));
+
+    input.onkeydown=e=>{
+      if(e.key==="Enter"&&e.target.value){
+        data[key]=data[key]||[];
+        data[key].push(e.target.value);
+        save("menu",data);
+        addMeal(list,data,key,e.target.value);
+        e.target.value="";
+      }
+    };
+    day.append(input,list);
+    box.appendChild(day);
+  }
+}
+function addMeal(list,data,key,name){
+  const d=document.createElement("div");
+  d.className="meal";
+  d.innerHTML=`<span>${name}</span><button>削除</button>`;
+  d.querySelector("button").onclick=()=>{
+    data[key]=data[key].filter(x=>x!==name);
+    save("menu",data);
+    d.remove();
+  };
+  list.appendChild(d);
+}
+renderMenu();
+
+/* 買い物 */
+const shopData=load("shop",[]);
+const shopList=document.getElementById("shopList");
+
+function renderShop(){
+  shopList.innerHTML="";
+  shopData.forEach((s,i)=>{
+    const d=document.createElement("div");
+    d.className="shop-item";
+    d.innerHTML=`<input type="checkbox"><span>${s}</span>`;
+    shopList.appendChild(d);
+  });
+}
+shopInput.onkeydown=e=>{
+  if(e.key==="Enter"&&e.target.value){
+    shopData.push(e.target.value);
+    save("shop",shopData);
+    e.target.value="";
+    renderShop();
+  }
+};
+
+function checkAllShop(){
+  shopList.querySelectorAll("input").forEach(c=>c.checked=true);
+}
+
+function moveToInventory(){
+  if(!confirm("チェックしたものを在庫に追加しますか？")) return;
+  const items=[...shopList.children];
+  items.forEach((d,i)=>{
+    if(d.querySelector("input").checked){
+      const name=shopData[i];
+      const cat=categoryHistory[name]||"冷蔵庫";
+      inventoryData.push({name,cat,level:3});
+      categoryHistory[name]=cat;
+      shopData.splice(i,1);
+    }
+  });
+  save("inventory",inventoryData);
+  save("shop",shopData);
+  save("catHistory",categoryHistory);
+  renderInventory();
+  renderShop();
+}
+renderShop();
+</script>
 </body>
 </html>
