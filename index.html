@@ -254,6 +254,70 @@ function addMeal(list,data,key,name){
 }
 renderMenu();
 
+<script>
+/* 凌大ごはん（朝・夜あり） */
+function renderRyota(){
+  const data = load("ryota", {});
+  const box = document.getElementById("ryota");
+  box.innerHTML = "";
+
+  const today = new Date();
+  const days = ["日","月","火","水","木","金","土"];
+
+  for(let i=-1;i<=2;i++){
+    const d = new Date();
+    d.setDate(today.getDate()+i);
+    const key = d.toDateString();
+
+    const day = document.createElement("div");
+    day.className = `day ${i<0?"past":i===0?"today":"future"}`;
+    day.innerHTML = `<h3>${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）</h3>`;
+
+    ["朝ごはん","夜ごはん"].forEach(time=>{
+      const input = document.createElement("input");
+      input.className = "input";
+      input.placeholder = time;
+
+      const list = document.createElement("div");
+
+      (data[key]?.[time] || []).forEach(name=>{
+        addRyotaMeal(list, data, key, time, name);
+      });
+
+      input.onkeydown = e => {
+        if(e.key==="Enter" && e.target.value){
+          data[key] = data[key] || {};
+          data[key][time] = data[key][time] || [];
+          data[key][time].push(e.target.value);
+          save("ryota", data);
+          addRyotaMeal(list, data, key, time, e.target.value);
+          e.target.value = "";
+        }
+      };
+
+      day.append(input, list);
+    });
+
+    box.appendChild(day);
+  }
+}
+
+function addRyotaMeal(list, data, key, time, name){
+  const d = document.createElement("div");
+  d.className = "meal";
+  d.innerHTML = `<span>${name}</span><button>削除</button>`;
+  d.querySelector("button").onclick = ()=>{
+    data[key][time] = data[key][time].filter(x=>x!==name);
+    save("ryota", data);
+    d.remove();
+  };
+  list.appendChild(d);
+}
+
+/* 呼び出し */
+renderRyota();
+</script>
+
 /* 買い物 */
 const shopData=load("shop",[]);
 const shopList=document.getElementById("shopList");
